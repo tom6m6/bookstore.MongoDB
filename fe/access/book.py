@@ -1,9 +1,7 @@
-import os
-import sqlite3 as sqlite
+from pymongo import MongoClient
 import random
 import base64
-import simplejson as json
-
+import pymongo
 
 class Book:
     id: str
@@ -30,54 +28,41 @@ class Book:
 
 class BookDB:
     def __init__(self, large: bool = False):
-        parent_path = os.path.dirname(os.path.dirname(__file__))
-        self.db_s = os.path.join(parent_path, "data/book.db")
-        self.db_l = os.path.join(parent_path, "data/book_lx.db")
-        if large:
-            self.book_db = self.db_l
-        else:
-            self.book_db = self.db_s
+        self.host = '127.0.0.1'
+        self.port = 27017
+        self.client = pymongo.MongoClient(self.host, self.port)
+        self.db = self.client['bookstore']
+        self.book_col = self.db['books']
 
     def get_book_count(self):
-        conn = sqlite.connect(self.book_db)
-        cursor = conn.execute("SELECT count(id) FROM book")
-        row = cursor.fetchone()
-        return row[0]
+        users_col = self.db.books
+        result = users_col.count_documents({})
+        return result
 
     def get_book_info(self, start, size) -> [Book]:
         books = []
-        conn = sqlite.connect(self.book_db)
-        cursor = conn.execute(
-            "SELECT id, title, author, "
-            "publisher, original_title, "
-            "translator, pub_year, pages, "
-            "price, currency_unit, binding, "
-            "isbn, author_intro, book_intro, "
-            "content, tags, picture FROM book ORDER BY id "
-            "LIMIT ? OFFSET ?",
-            (size, start),
-        )
-        for row in cursor:
+        users_col = self.db.books
+        cursor = users_col.find().sort("book_id", pymongo.ASCENDING).skip(start).limit(size)
+        for doc in cursor:
             book = Book()
-            book.id = row[0]
-            book.title = row[1]
-            book.author = row[2]
-            book.publisher = row[3]
-            book.original_title = row[4]
-            book.translator = row[5]
-            book.pub_year = row[6]
-            book.pages = row[7]
-            book.price = row[8]
+            book.id = doc['id']
+            book.title= doc['title']
+            book.author = doc['author']
+            book.publisher = doc['publisher']
+            book.original_title = doc['original_title']
+            book.translator = doc['translator']
+            book.pub_year = doc['pub_year']
+            book.pages = doc['pages']
+            book.price = doc['price']
 
-            book.currency_unit = row[9]
-            book.binding = row[10]
-            book.isbn = row[11]
-            book.author_intro = row[12]
-            book.book_intro = row[13]
-            book.content = row[14]
-            tags = row[15]
-
-            picture = row[16]
+            book.currency_unit = doc['currency_unit']
+            book.binding = doc['binding']
+            book.isbn = doc['isbn']
+            book.author_intro = doc['author_intro']
+            book.book_intro = doc['book_intro']
+            book.content = doc['content']
+            picture = doc['picture']
+            tags = doc['tags']
 
             for tag in tags.split("\n"):
                 if tag.strip() != "":
@@ -87,10 +72,5 @@ class BookDB:
                     encode_str = base64.b64encode(picture).decode("utf-8")
                     book.pictures.append(encode_str)
             books.append(book)
-            # print(tags.decode('utf-8'))
-
-            # print(book.tags, len(book.picture))
-            # print(book)
-            # print(tags)
 
         return books
