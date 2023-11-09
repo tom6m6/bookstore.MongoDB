@@ -158,3 +158,30 @@ class Buyer(db_conn.DBConn):
         except BaseException as e:
             return 528, "{}".format(str(e))
         return 200, "ok"
+      
+    def search(self, keyword, scope=None, store_id=None, page=1, per_page=10):
+        try:
+            base_query = {"$text": {"$search": keyword}}
+            scope_fields = {
+                "title": "title",
+                "tags": "tags",
+                "book_intro": "book_intro",
+                "content": "content"
+            }
+            query = base_query
+            if store_id:
+                results = self.conn.store_col.find({"store_id": store_id}, {"books.book_id": 1, "_id": 0})
+                for result in results:
+                    print(result)
+                books_id = [i["book_id"] for i in results["books"]]
+                query["id"] = {"$in": books_id}
+
+            results = self.conn.book_col.find(query,
+                                              {"score": {"$meta": "textScore"}, "_id": 0, "picture": 0}).sort(
+                [("score", {"$meta": "textScore"})])
+            # Perform pagination
+            results.skip((int(page) - 1) * per_page).limit(per_page)
+        except BaseException as e:
+            return 530, f"{str(e)}"
+        return 200, list(results)
+

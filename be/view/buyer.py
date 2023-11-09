@@ -45,11 +45,23 @@ def add_funds():
 
 
 
+
 @bp_buyer.route("/receive_books", methods=["POST"])
 def receive_books():
     user_id = request.json.get("user_id")
     order_id = request.json.get("order_id")
     b = Buyer()
     code, message = b.receive_books(user_id, order_id)
+    return jsonify({"message": message}), code
+
+@bp_buyer.route("/search", methods=["POST"])
+def search_books():
+    keyword = request.json.get("keyword")
+    scope = request.json.get("scope")
+    store_id = request.json.get("store_id")
+    page = request.json.get("page")
+
+    b = Buyer()
+    code, message = b.search(keyword, scope, store_id, page)
     return jsonify({"message": message}), code
 
