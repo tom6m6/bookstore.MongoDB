@@ -3,7 +3,8 @@ import pytest
 import uuid
 from fe.access.new_buyer import register_new_buyer
 from fe.access.new_seller import register_new_seller
-
+from fe.access.search import RequestSearch
+from fe.access import book
 
 
 class TestSearch:
@@ -32,4 +33,32 @@ class TestSearch:
         print(content, len(content))
         assert code == 200
 
+    def test_pagination(self):
+        content, code = self.buyer.search(self.keyword, page=2)
+        assert code == 200
 
+    def test_search_title(self):
+        title = f"hello_{str(uuid.uuid1())}"
+        self.book_example.title = title
+        code = self.seller.add_book(self.store_id, 0, self.book_example)
+        assert code == 200
+
+        code = self.rs.request_search_title(title=title)
+        assert code == 200
+
+        code = self.rs.request_search_title(title=title + "x")
+        assert code == 501
+
+    def test_search_title_in_store(self):
+        title = f"hello_{str(uuid.uuid1())}"
+        self.book_example.title = title
+        self.seller.add_book(self.store_id, 0, self.book_example)
+
+        code = self.rs.request_search_title_in_store(title=title, store_id=self.store_id)
+        assert code == 200
+
+        code = self.rs.request_search_title_in_store(title=title + "x",
+                                                     store_id=self.store_id)
+        assert code == 501
+
+    
