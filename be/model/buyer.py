@@ -158,8 +158,7 @@ class Buyer(db_conn.DBConn):
         except BaseException as e:
             return 528, "{}".format(str(e))
         return 200, "ok"
-
-
+      
     def search(self, keyword, scope=None, store_id=None, page=1, per_page=10):
         try:
             base_query = {"$text": {"$search": keyword}}
@@ -185,3 +184,4 @@ class Buyer(db_conn.DBConn):
         except BaseException as e:
             return 530, f"{str(e)}"
         return 200, list(results)
+
