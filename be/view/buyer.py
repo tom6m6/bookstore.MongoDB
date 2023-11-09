@@ -43,8 +43,12 @@ def add_funds():
     code, message = b.add_funds(user_id, password, add_value)
     return jsonify({"message": message}), code
 
-
-
+@bp_buyer.route("/check_hist_order", methods=["POST"])
+def check_hist_order():
+    user_id = request.json.get("user_id")
+    b = Buyer()
+    code, message, res = b.check_hist_order(user_id)
+    return jsonify({"message": message, "history orders": res}), code
 
 @bp_buyer.route("/receive_books", methods=["POST"])
 def receive_books():
