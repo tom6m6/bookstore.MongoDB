@@ -133,3 +133,28 @@ class Buyer(db_conn.DBConn):
 
         return 200, ""
 
+    def receive_books(self, user_id: str, order_id: str) -> (int, str):
+        try :
+            result = self.conn.order_col.find_one({
+                "$or": [
+                    {"order_id": order_id, "status": 1},
+                    {"order_id": order_id, "status": 2},
+                    {"order_id": order_id, "status": 3},
+                ]
+            })
+            if result == None:
+                return error.error_invalid_order_id(order_id)
+            buyer_id = result.get("user_id")
+            paid_status = result.get("status")
+
+            if buyer_id != user_id:
+                return error.error_authorization_fail()
+            if paid_status == 1:
+                return error.error_books_not_sent()
+            if paid_status == 3:
+                return error.error_books_duplicate_receive()
+
+            self.conn.order_col.update_one({"order_id": order_id}, {"$set": {"status": 3}})
+        except BaseException as e:
+            return 528, "{}".format(str(e))
+        return 200, "ok"
