@@ -1,56 +1,75 @@
+import requests
 import json
 
-from flask import Blueprint
-from flask import request
-from flask import jsonify
-from be.model.book import Book
+class RequestSearch:
+    def __init__(self):
+        self.url_prefix = "http://127.0.0.1:5000/search"
 
-bp_search = Blueprint("search", __name__, url_prefix="/search")
+    def request_search_title(self, title):
+        params = {
+            "title": title
+        }
+        # print(simplejson.dumps(json))
+        url = self.url_prefix + "/title"
+        # headers = {"token": self.token}
+        r = requests.get(url,params=params)
+        res = json.loads(r.text)
+        return res['code']
 
+    def request_search_title_in_store(self, title, store_id):
+        params = {
+            "title": title,
+            "store_id": store_id
+        }
+        # print(simplejson.dumps(json))
+        url = self.url_prefix + "/title_in_store"
+        # headers = {"token": self.token}
+        r = requests.get(url,params=params)
+        res = json.loads(r.text)
+        return res['code']
 
-@bp_search.route("/title", methods=["GET"])
-def search_title():
-    return search_title_in_store()
+    def request_search_tag(self, tag):
+        params = {
+            "tag": tag
+        }
+        # print(simplejson.dumps(json))
+        url = self.url_prefix + "/tag"
+        # headers = {"token": self.token}
+        r = requests.get(url, params=params)
+        res = json.loads(r.text)
+        return res['code']
 
+    def request_search_tag_in_store(self, tag, store_id):
+        params = {
+            "tag": tag,
+            "store_id": store_id
+        }
+        # print(simplejson.dumps(json))
+        url = self.url_prefix + "/tag_in_store"
+        # headers = {"token": self.token}
+        r = requests.get(url, params=params)
+        res = json.loads(r.text)
+        return res['code']
 
-@bp_search.route("/title_in_store", methods=["GET"])
-def search_title_in_store():
-    title = request.args.get("title")
-    store_id = request.args.get("store_id")
-    page_num = request.args.get("page_num")
-    page_size = request.args.get("page_size")
-    if title is None:
-        title = ""
-    if store_id is None:
-        store_id = ""
-    if page_num is None:
-        page_num = 1
-    if page_size is None:
-        page_size = 10
-    book = Book()
-    code, message, books = book.search_title_in_store(title, store_id, page_num, page_size)
-    # return jsonify({"data": books, "message": message, "code": code})
-    return jsonify({"data": str(books), "message": message, "code": code})
+    def request_search_content(self, content):
+        params = {
+            "content": content
+        }
+        # print(simplejson.dumps(json))
+        url = self.url_prefix + "/content"
+        # headers = {"token": self.token}
+        r = requests.get(url, params=params)
+        res = json.loads(r.text)
+        return res['code']
 
-@bp_search.route("/tag", methods=["GET"])
-def search_tag():
-    return search_tag_in_store()
-
-
-@bp_search.route("/tag_in_store", methods=["GET"])
-def search_tag_in_store():
-    tag = request.args.get("tag")
-    store_id = request.args.get("store_id")
-    page_num = request.args.get("page_num")
-    page_size = request.args.get("page_size")
-    if tag is None:
-        tag = ""
-    if store_id is None:
-        store_id = ""
-    if page_num is None:
-        page_num = 1
-    if page_size is None:
-        page_size = 10
-    book = Book()
-    code, message, books = book.search_tag_in_store(tag, store_id, page_num, page_size)
-    return jsonify({"data": str(books), "message": message, "code": code})
+    def request_search_content_in_store(self, content, store_id):
+        params = {
+            "content": content,
+            "store_id": store_id
+        }
+        # print(simplejson.dumps(json))
+        url = self.url_prefix + "/content_in_store"
+        # headers = {"token": self.token}
+        r = requests.get(url, params=params)
+        res = json.loads(r.text)
+        return res['code']
