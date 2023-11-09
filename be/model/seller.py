@@ -29,6 +29,7 @@ class Seller(db_conn.DBConn):
                     "$push": {
                         "books": {
                             "book_id": book_id,
+                            # "book_info": book_json_str,
                             "stock_level": stock_level
                         }
                     }
@@ -60,11 +61,40 @@ class Seller(db_conn.DBConn):
                 return error.error_non_exist_user_id(user_id)
             if self.store_id_exist(store_id):
                 return error.error_exist_store_id(store_id)
+            # self.conn.user_store_col.insert_one({"store_id": store_id, "user_id": user_id})
             self.conn.store_col.insert_one({ 
                 "store_id": store_id,
                 "user_id": user_id,
                 "books": []
             })
+        except BaseException as e:
+            return 528, "{}".format(str(e))
+        return 200, "ok"
+
+    def send_books(self, user_id: str, order_id: str) -> (int, str):
+        try:
+            result = self.conn.order_col.find_one({
+                "$or": [
+                    {"order_id": order_id, "status": 1},
+                    {"order_id": order_id, "status": 2},
+                    {"order_id": order_id, "status": 3},
+                ]
+            })
+
+            if result == None:
+                return error.error_invalid_order_id(order_id)
+            store_id = result.get("store_id")
+            paid_status = result.get("status")
+
+            result = self.conn.store_col.find_one({"store_id": store_id})
+            # result = self.conn.user_store_col.find_one({"store_id": store_id})
+            seller_id = result.get("user_id")
+            if seller_id != user_id:
+                return error.error_authorization_fail()
+            if paid_status == 2 or paid_status == 3:
+                return error.error_books_duplicate_sent()
+
+            self.conn.order_col.update_one({"order_id": order_id}, {"$set": {"status": 2}})
         except BaseException as e:
             return 528, "{}".format(str(e))
         return 200, "ok"
