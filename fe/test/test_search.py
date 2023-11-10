@@ -83,6 +83,29 @@ class TestSearch:
         code = self.rs.request_search_tag_in_store(tag=tag + "x", store_id=self.store_id)
         assert code == 501
 
+    def test_search_author(self):
+        author = f"hello_{str(uuid.uuid1())}"
+        self.book_example.author = author
+        self.seller.add_book(self.store_id, 0, self.book_example)
+
+        code = self.rs.request_search_author(author=author)
+        assert code == 200
+
+        code = self.rs.request_search_author(author=author + "x")
+        assert code == 501
+
+    def test_search_author_in_store(self):
+        author = f"hello_{str(uuid.uuid1())}"
+        self.book_example.author = author
+        self.seller.add_book(self.store_id, 0, self.book_example)
+
+        code = self.rs.request_search_author_in_store(author=author, store_id=self.store_id)
+        assert code == 200
+
+        code = self.rs.request_search_author_in_store(author=author + "x",
+                                                      store_id=self.store_id)
+        assert code == 501
+
     def test_search_content(self):
         key = "hello11"
         book_intro = f"{str(uuid.uuid1())} {key} {str(uuid.uuid1())}"
@@ -107,4 +130,5 @@ class TestSearch:
         code = self.rs.request_search_content_in_store(content=key + "x",
                                                        store_id=self.store_id)
         assert code == 501
-    
+
+

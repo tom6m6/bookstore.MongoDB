@@ -51,6 +51,29 @@ class RequestSearch:
         res = json.loads(r.text)
         return res['code']
 
+    def request_search_author(self, author):
+        params = {
+            "author": author
+        }
+        # print(simplejson.dumps(json))
+        url = self.url_prefix + "/author"
+        # headers = {"token": self.token}
+        r = requests.get(url, params=params)
+        res = json.loads(r.text)
+        return res['code']
+
+    def request_search_author_in_store(self, author, store_id):
+        params = {
+            "author": author,
+            "store_id": store_id
+        }
+        # print(simplejson.dumps(json))
+        url = self.url_prefix + "/author_in_store"
+        # headers = {"token": self.token}
+        r = requests.get(url, params=params)
+        res = json.loads(r.text)
+        return res['code']
+
     def request_search_content(self, content):
         params = {
             "content": content
