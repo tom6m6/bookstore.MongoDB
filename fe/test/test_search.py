@@ -61,4 +61,50 @@ class TestSearch:
                                                      store_id=self.store_id)
         assert code == 501
 
+    def test_search_tag(self):
+        tag = f"hello_{str(uuid.uuid1())}"
+        self.book_example.tags = [tag]
+        self.seller.add_book(self.store_id, 0, self.book_example)
+
+        code = self.rs.request_search_tag(tag=tag)
+        assert code == 200
+
+        code = self.rs.request_search_tag(tag=tag + "x")
+        assert code == 501
+
+    def test_search_tag_in_store(self):
+        tag = f"hello_{str(uuid.uuid1())}"
+        self.book_example.tags = [tag]
+        self.seller.add_book(self.store_id, 0, self.book_example)
+
+        code = self.rs.request_search_tag_in_store(tag=tag, store_id=self.store_id)
+        assert code == 200
+
+        code = self.rs.request_search_tag_in_store(tag=tag + "x", store_id=self.store_id)
+        assert code == 501
+
+    def test_search_content(self):
+        key = "hello11"
+        book_intro = f"{str(uuid.uuid1())} {key} {str(uuid.uuid1())}"
+        self.book_example.book_intro = book_intro
+        self.seller.add_book(self.store_id, 0, self.book_example)
+
+        code = self.rs.request_search_content(content=key)
+        assert code == 200
+
+        code = self.rs.request_search_content(content=key + "x")
+        assert code == 501
+
+    def test_search_content_in_store(self):
+        key = "hello12"
+        book_intro = f"{str(uuid.uuid1())} {key} {str(uuid.uuid1())}"
+        self.book_example.book_intro = book_intro
+        self.seller.add_book(self.store_id, 0, self.book_example)
+
+        code = self.rs.request_search_content_in_store(content=key, store_id=self.store_id)
+        assert code == 200
+
+        code = self.rs.request_search_content_in_store(content=key + "x",
+                                                       store_id=self.store_id)
+        assert code == 501
     
