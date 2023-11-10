@@ -2,7 +2,7 @@ import sqlite3
 from pymongo import MongoClient
 import json
 
-conn = sqlite3.connect('fe/data/book.db')
+conn = sqlite3.connect('book.db')
 cur = conn.cursor()
 
 

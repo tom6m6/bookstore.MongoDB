@@ -51,7 +51,7 @@ class TestCancelOrder:
         assert code == 200
 
     def test_invalid_order_id_paid(self):
-        # 已付款，但是order_id不存在
+        # 已付款，order_id不存在
         code, self.order_id = self.buyer.new_order(self.store_id, self.buy_book_id_list)
         assert code == 200
         code = self.buyer.payment(self.order_id)
@@ -60,7 +60,7 @@ class TestCancelOrder:
         assert code != 200
 
     def test_invalid_order_id_unpaid(self):
-        # 未付款，但是order_id不存在
+        # 未付款，order_id不存在
         code, self.order_id = self.buyer.new_order(self.store_id, self.buy_book_id_list)
         assert code == 200
         code = self.buyer.cancel_order(self.buyer_id, self.order_id + 'x')

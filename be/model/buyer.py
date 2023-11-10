@@ -25,8 +25,7 @@ class Buyer(db_conn.DBConn):
                     return error.error_non_exist_book_id(book_id) + (order_id,)
                 result1 = self.conn.book_col.find_one({"id": book_id})
                 stock_level = result["books"][0]["stock_level"]
-                #book_info = json.loads(result["books"][0]["book_info"])
-                #price = book_info["price"]
+
                 price = result1["price"]
                 if stock_level < count:
                     return error.error_stock_level_low(book_id) + (order_id,)
@@ -82,7 +81,7 @@ class Buyer(db_conn.DBConn):
 
 
             result = self.conn.store_col.find_one({"store_id": store_id})
-            # result = self.conn.user_store_col.find_one({"store_id": store_id})
+
             if result is None:
                 return error.error_non_exist_store_id(store_id)
             seller_id = result.get("user_id")
@@ -152,13 +151,13 @@ class Buyer(db_conn.DBConn):
             if paid_status == 1:
                 return error.error_books_not_sent()
             if paid_status == 3:
-                return error.error_books_duplicate_receive()
+                return error.error_books_repeat_receive()
 
             self.conn.order_col.update_one({"order_id": order_id}, {"$set": {"status": 3}})
         except BaseException as e:
             return 528, "{}".format(str(e))
         return 200, "ok"
-    
+
     def cancel_order(self, user_id: str, order_id: str) -> (int, str):
         try:
             # 未付款
@@ -170,7 +169,6 @@ class Buyer(db_conn.DBConn):
                 store_id = result.get("store_id")
                 price = result.get("price")
                 self.conn.order_col.delete_one({"order_id": order_id, "status": 0})
-
             # 已付款
             else:
                 result = self.conn.order_col.find_one({
@@ -188,7 +186,7 @@ class Buyer(db_conn.DBConn):
                     price = result.get("price")
 
                     result1 = self.conn.store_col.find_one({"store_id": store_id})
-                    # result1 = self.conn.user_store_col.find_one({"store_id": store_id})
+
                     if result1 is None:
                         return error.error_non_exist_store_id(store_id)
                     seller_id = result1.get("user_id")
@@ -228,73 +226,7 @@ class Buyer(db_conn.DBConn):
         except BaseException as e:
             return 528, "{}".format(str(e))
         return 200, "ok"
-    
-    def auto_cancel_order(self) -> (int, str):
-        try:
-            wait_time = 20  # ????20s
-            now = datetime.utcnow()  # UTC??
-            interval = now - timedelta(seconds=wait_time)
-            cursor = {"create_time": {"$lte": interval}, "status": 0}
-            orders_to_cancel = self.conn.order_col.find(cursor)
-            if orders_to_cancel:
-                for order in orders_to_cancel:
-                    order_id = order["order_id"]
-                    user_id = order["user_id"]
-                    store_id = order["store_id"]
-                    price = order["price"]
-                    self.conn.order_col.delete_one({"order_id": order_id, "status": 0})
 
-                    order_query = {"order_id": order_id}
-                    book_doc = self.conn.order_detail_col.find(order_query)
-                    for book in book_doc:
-                        book_id = book["book_id"]
-                        count = book["count"]
-                        query = {"store_id": store_id, "books.book_id": book_id}
-                        update = {"$inc": {"books.$.stock_level": count}}
-                        update_result = self.conn.store_col.update_one(query, update)
-                        if update_result.modified_count == 0:
-                            return error.error_stock_level_low(book_id) + (order_id,)
-
-                    canceled_order = {"order_id": order_id, "user_id": user_id,"store_id": store_id, "price": price, "status": 4}
-
-                    self.conn.order_col.insert_one(canceled_order)
-        except BaseException as e:
-            return 528, "{}".format(str(e))
-        return 200, "ok"
-      
-    def search(self, keyword, scope=None, store_id=None, page=1, per_page=10):
-        try:
-            base_query = {"$text": {"$search": keyword}}
-            scope_fields = {
-                "title": "title",
-                "tags": "tags",
-                "book_intro": "book_intro",
-                "content": "content"
-            }
-            query = base_query
-            if store_id:
-                results = self.conn.store_col.find({"store_id": store_id}, {"books.book_id": 1, "_id": 0})
-                for result in results:
-                    print(result)
-                books_id = [i["book_id"] for i in results["books"]]
-                query["id"] = {"$in": books_id}
-
-            results = self.conn.book_col.find(query,
-                                              {"score": {"$meta": "textScore"}, "_id": 0, "picture": 0}).sort(
-                [("score", {"$meta": "textScore"})])
-            # Perform pagination
-            results.skip((int(page) - 1) * per_page).limit(per_page)
-        except BaseException as e:
-            return 530, f"{str(e)}"
-        return 200, list(results)
-
-    def is_order_cancelled(self, order_id: str) -> (int, str):
-            result = self.conn.order_col.find_one({"order_id": order_id, "status": 4})
-            if result is None:
-                return error.error_auto_cancel_fail(order_id)
-            else:
-                return 200, "ok"
-    
     def check_hist_order(self, user_id: str):
         try:
             if not self.user_id_exist(user_id):
@@ -350,7 +282,6 @@ class Buyer(db_conn.DBConn):
                     else:
                         return error.error_invalid_order_id(order_id)
                     ans.append({
-                        # "status": "paid", 不再霢�覄1�7
                         "order_id": order_id,
                         "buyer_id": i.get("user_id"),
                         "store_id": i.get("store_id"),
@@ -358,7 +289,6 @@ class Buyer(db_conn.DBConn):
                         "status": books_status_list[i.get("status") - 1],
                         "details": tmp_details
                     })
-
             # 已取消
             result = self.conn.order_col.find({"user_id": user_id, "status": 4})
             if result:
@@ -391,6 +321,59 @@ class Buyer(db_conn.DBConn):
             return 200, "ok", "No orders found "
         else:
             return 200, "ok", ans
+
+
+    def auto_cancel_order(self) -> (int, str):
+        try:
+            wait_time = 20  # 等待时间20s
+            interval = datetime.utcnow() - timedelta(seconds=wait_time) # UTC时间
+            orders_to_cancel = self.conn.order_col.find({"create_time": {"$lte": interval}, "status": 0})
+            if orders_to_cancel:
+                for order in orders_to_cancel:
+                    order_id = order["order_id"]
+                    user_id = order["user_id"]
+                    store_id = order["store_id"]
+                    price = order["price"]
+                    self.conn.order_col.delete_one({"order_id": order_id, "status": 0})
+                    result = self.conn.order_detail_col.find({"order_id": order_id})
+
+                    for book in result:
+                        book_id = book["book_id"]
+                        count = book["count"]
+                        result1 = self.conn.store_col.update_one({"store_id": store_id, "books.book_id": book_id}, {"$inc": {"books.$.stock_level": count}})
+                        if result1.modified_count == 0:
+                            return error.error_stock_level_low(book_id) + (order_id,)
+
+                    self.conn.order_col.insert_one({"order_id": order_id, "user_id": user_id,"store_id": store_id, "price": price, "status": 4})
+        except BaseException as e:
+            return 528, "{}".format(str(e))
+        return 200, "ok"
+
+    def is_order_cancelled(self, order_id: str) -> (int, str):
+        result = self.conn.order_col.find_one({"order_id": order_id, "status": 4})
+        if result is None:
+            return error.error_auto_cancel_fail(order_id)
+        else:
+            return 200, "ok"
+
+    def search(self, keyword, store_id=None, page=1, per_page=10):
+        try:
+            query = {"$text": {"$search": keyword}}
+            if store_id:
+                result1 = self.conn.store_col.find({"store_id": store_id}, {"books.book_id": 1, "_id": 0})
+                for result in result1:
+                    print(result)
+                books_id = [i["book_id"] for i in result1["books"]]
+                query["id"] = {"$in": books_id}
+
+            result = self.conn.book_col.find(query,
+                                              {"score": {"$meta": "textScore"}, "_id": 0, "picture": 0}).sort(
+                [("score", {"$meta": "textScore"})])
+
+            result.skip((int(page) - 1) * per_page).limit(per_page)
+        except BaseException as e:
+            return 530, f"{str(e)}"
+        return 200, list(result)
 
 
 scheduler = BackgroundScheduler()

@@ -43,12 +43,6 @@ def add_funds():
     code, message = b.add_funds(user_id, password, add_value)
     return jsonify({"message": message}), code
 
-@bp_buyer.route("/check_hist_order", methods=["POST"])
-def check_hist_order():
-    user_id = request.json.get("user_id")
-    b = Buyer()
-    code, message, res = b.check_hist_order(user_id)
-    return jsonify({"message": message, "history orders": res}), code
 
 @bp_buyer.route("/receive_books", methods=["POST"])
 def receive_books():
@@ -58,16 +52,6 @@ def receive_books():
     code, message = b.receive_books(user_id, order_id)
     return jsonify({"message": message}), code
 
-@bp_buyer.route("/search", methods=["POST"])
-def search_books():
-    keyword = request.json.get("keyword")
-    scope = request.json.get("scope")
-    store_id = request.json.get("store_id")
-    page = request.json.get("page")
-
-    b = Buyer()
-    code, message = b.search(keyword, scope, store_id, page)
-    return jsonify({"message": message}), code
 
 @bp_buyer.route("/cancel_order", methods=["POST"])
 def cancel_order():
@@ -91,4 +75,22 @@ def is_order_cancelled():
     order_id = request.json.get("order_id")
     b = Buyer()
     code, message = b.is_order_cancelled(order_id)
+    return jsonify({"message": message}), code
+
+
+@bp_buyer.route("/check_hist_order", methods=["POST"])
+def check_hist_order():
+    user_id = request.json.get("user_id")
+    b = Buyer()
+    code, message, res = b.check_hist_order(user_id)
+    return jsonify({"message": message, "history orders": res}), code
+
+@bp_buyer.route("/search", methods=["POST"])
+def search_books():
+    keyword = request.json.get("keyword")
+    store_id = request.json.get("store_id")
+    page = request.json.get("page")
+
+    b = Buyer()
+    code, message = b.search(keyword, store_id, page)
     return jsonify({"message": message}), code

@@ -1,7 +1,3 @@
-import logging
-import pymongo
-from pymongo import errors
-from be.model import error
 from be.model import db_conn
 
 
@@ -58,9 +54,6 @@ class Book(db_conn.DBConn):
 
     def search_content_in_store(self, content: str, store_id: str, page_num: int, page_size: int):
         book = self.conn.book_col
-        # condition = {
-        #     "book_intro": {"$regex": content}
-        # }
         condition = {
             "$text": {"$search": content}
         }

@@ -11,10 +11,10 @@ class Store:
         self.user_col = self.db['user']
         self.store_col = self.db['store']
         self.book_col = self.db['books']
-
         self.order_detail_col = self.db['order_detail']
         self.order_col = self.db['order']
 
+        self.store_col.create_index([("store_id", 1)], unique=True)
         self.user_col.create_index([("user_id", 1)], unique=True)
         self.book_col.create_index(
             [("title", "text"), ("tags", "text"), ("book_intro", "text"), ("content", "text")])

@@ -52,7 +52,7 @@ class Testhistoryorder:
                     code = self.buyer.payment(self.order_id)
                     assert code == 200
                     is_cancelled = random.randint(0, 1)
-                    # 发货和收货前的取消订单情况
+                    # 发货和收货前
                     if is_cancelled == 1:
                         code = self.buyer.cancel_order(self.buyer_id, self.order_id)
                         assert code == 200
@@ -61,7 +61,7 @@ class Testhistoryorder:
                         code = self.seller.send_books(self.seller_id, self.order_id)
                         assert code == 200
                         is_cancelled = random.randint(0, 1)
-                        # 发货后收货前的取消订单情况
+                        # 发货后收货前
                         if is_cancelled == 1:
                             code = self.buyer.cancel_order(self.buyer_id, self.order_id)
                             assert code == 200

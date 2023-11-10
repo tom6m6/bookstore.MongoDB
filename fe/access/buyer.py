@@ -49,21 +49,6 @@ class Buyer:
         r = requests.post(url, headers=headers, json=json)
         return r.status_code
 
-    def search(self, keyword, scope=None, store_id=None, page=1):
-        # store
-        json = {
-            "keyword": keyword,
-            "page": page
-        }
-        if scope:
-            json["scope"] = scope
-        if store_id:
-            json["store_id"] = store_id
-
-        url = urljoin(self.url_prefix, "search")
-        r = requests.post(url, json=json)
-        return r.content, r.status_code
-    
     def cancel_order(self, user_id: str, order_id: str) -> int:
         json = {"user_id": user_id, "order_id": order_id}
         url = urljoin(self.url_prefix, "cancel_order")
@@ -91,3 +76,16 @@ class Buyer:
         headers = {"token": self.token}
         r = requests.post(url, headers=headers, json=json)
         return r.status_code
+
+    def search(self, keyword, store_id=None, page=1):
+        # store
+        json = {
+            "keyword": keyword,
+            "page": page
+        }
+        if store_id:
+            json["store_id"] = store_id
+
+        url = urljoin(self.url_prefix, "search")
+        r = requests.post(url, json=json)
+        return r.content, r.status_code

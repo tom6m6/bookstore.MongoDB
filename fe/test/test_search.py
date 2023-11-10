@@ -20,9 +20,7 @@ class TestSearch:
         self.seller = register_new_seller(self.user_id, self.password)
         code = self.seller.create_store(self.store_id)
         assert code == 200
-
         self.keyword = "hello"
-
         self.rs = RequestSearch()
         book_db = book.BookDB()
         self.book_example = book_db.get_book_info(0, 1)[0]

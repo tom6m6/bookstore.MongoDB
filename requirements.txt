@@ -3,7 +3,7 @@ lxml==4.9.3
 codecov
 coverage
 flask==2.0.0
-pre - commit
+Werkzeug==2.0.0
 pytest==7.4.0
 PyJWT==2.4.0
 requests==2.31.0
